@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#818cf8">
+  <meta name="description" content="Planix – Accurate software cost estimation">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icon-192.png">
+  <title>Login – Planix</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body class="auth-body">
+  <div class="auth-container">
+    <!-- Left decorative panel -->
+    <div class="auth-hero">
+      <div class="hero-content">
+        <div class="hero-icon">📐</div>
+        <h1>Plan<span class="accent">ix</span></h1>
+        <p>Accurate software cost estimation using COCOMO &amp; Function Point Analysis models.</p>
+        <div class="hero-features">
+          <div class="feature-chip"><span>📊</span> Visual Reports</div>
+          <div class="feature-chip"><span>🔒</span> Secure History</div>
+          <div class="feature-chip"><span>⚡</span> Instant Results</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login form -->
+    <div class="auth-form-panel">
+      <div class="auth-form-wrapper">
+        <h2>Welcome back</h2>
+        <p class="auth-subtitle">Sign in to your account to continue</p>
+
+        <div id="error-msg" class="auth-error" style="display:none;"></div>
+
+        <form id="login-form" onsubmit="handleLogin(event)">
+          <div class="input-group">
+            <label for="email">Email Address</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              <input type="email" id="email" placeholder="you@example.com" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="login-btn">
+            <span class="btn-text">Sign In</span>
+            <span class="btn-loader" style="display:none;"></span>
+          </button>
+        </form>
+
+        <p class="auth-switch">
+          Don't have an account? <a href="/register">Create one</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Redirect if already logged in
+    if (localStorage.getItem('token')) {
+      window.location.href = '/';
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('login-btn');
+      const errBox = document.getElementById('error-msg');
+      errBox.style.display = 'none';
+      btn.classList.add('loading');
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          errBox.textContent = data.detail || 'Login failed';
+          errBox.style.display = 'block';
+          btn.classList.remove('loading');
+          return;
+        }
+
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('username', data.username);
+        window.location.href = '/';
+      } catch (err) {
+        errBox.textContent = 'Connection error. Is the server running?';
+        errBox.style.display = 'block';
+        btn.classList.remove('loading');
+      }
+    }
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(function (err) {
+        console.log('SW registration failed:', err);
+      });
+    }
+  </script>
+</body>
+
+</html>

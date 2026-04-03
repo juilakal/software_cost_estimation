@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#818cf8">
+    <meta name="description" content="Planix – Estimation History & Trends">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <title>History – Planix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+
+<body class="app-body">
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <span class="nav-logo">📐 Plan<span class="accent">ix</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Dashboard</a>
+            <a href="/history" class="nav-link active">History</a>
+        </div>
+        <div class="nav-right">
+            <span class="nav-user" id="nav-username"></span>
+            <button class="btn-logout" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <main class="dashboard">
+        <!-- Trend Chart -->
+        <section class="card" id="trend-section" style="display:none;">
+            <h2 class="card-title">📈 Cost Trends</h2>
+            <p class="card-subtitle">Your estimation costs over time</p>
+            <div class="chart-container chart-wide">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Comparison Chart -->
+        <section class="card" id="comparison-section" style="display:none;">
+            <h2 class="card-title">📊 Estimation Comparison</h2>
+            <p class="card-subtitle">Side-by-side comparison of recent estimations</p>
+            <div class="chart-container chart-wide">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </section>
+
+        <!-- History Table -->
+        <section class="card">
+            <h2 class="card-title">🗂️ Estimation History</h2>
+            <p class="card-subtitle" id="history-count"></p>
+
+            <div id="empty-state" class="empty-state" style="display:none;">
+                <div class="empty-icon">📋</div>
+                <p>No estimations yet. Head to the <a href="/">Dashboard</a> to create one!</p>
+            </div>
+
+            <div class="table-wrapper" id="history-table-wrapper" style="display:none;">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Method</th>
+                            <th>Inputs</th>
+                            <th>Effort (PM)</th>
+                            <th>Time (Mo)</th>
+                            <th>Cost (₹)</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ── Auth check ──
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        const usernameEl = document.getElementById('nav-username');
+        usernameEl.textContent = localStorage.getItem('username') || 'User';
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            window.location.href = '/login';
+        }
+
+        // ── Load history ──
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.status === 401) { logout(); return; }
+                const data = await res.json();
+                const records = data.history || [];
+
+                document.getElementById('history-count').textContent =
+                    records.length + ' estimation' + (records.length !== 1 ? 's' : '') + ' found';
+
+                if (records.length === 0) {
+                    document.getElementById('empty-state').style.display = 'flex';
+                    return;
+                }
+
+                document.getElementById('history-table-wrapper').style.display = 'block';
+
+                // Populate table
+                const tbody = document.getElementById('history-body');
+                records.forEach((r, i) => {
+                    const inputs = JSON.parse(r.inputs);
+                    let inputStr = '';
+                    if (r.method === 'COCOMO') {
+                        inputStr = 'KLOC: ' + inputs.kloc + ', Type: ' + inputs.project_type;
+                    } else {
+                        inputStr = 'FP: ' + inputs.fp + ', Lang: ' + inputs.language;
+                    }
+                    const date = new Date(r.created_at).toLocaleDateString('en-IN', {
+                        day: 'numeric', month: 'short', year: 'numeric'
+                    });
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML =
+                        '<td>' + (i + 1) + '</td>' +
+                        '<td><span class="method-badge ' + r.method.toLowerCase() + '">' + r.method + '</span></td>' +
+                        '<td class="input-cell">' + inputStr + '</td>' +
+                        '<td>' + r.effort + '</td>' +
+                        '<td>' + r.time + '</td>' +
+                        '<td>₹' + r.cost.toLocaleString() + '</td>' +
+                        '<td>' + date + '</td>';
+                    tbody.appendChild(tr);
+                });
+
+                // Charts (use reversed for chronological order)
+                const chronological = [...records].reverse();
+
+                if (chronological.length >= 2) {
+                    // Trend Chart
+                    document.getElementById('trend-section').style.display = 'block';
+                    const trendCtx = document.getElementById('trendChart').getContext('2d');
+                    new Chart(trendCtx, {
+                        type: 'line',
+                        data: {
+                            labels: chronological.map(function (r) {
+                                var d = new Date(r.created_at);
+                                return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                            }),
+                            datasets: [{
+                                label: 'Cost (₹)',
+                                data: chronological.map(function (r) { return r.cost; }),
+                                borderColor: '#818cf8',
+                                backgroundColor: 'rgba(129,140,248,0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#818cf8',
+                                pointBorderColor: '#1e1b4b',
+                                pointBorderWidth: 2,
+                                pointRadius: 5,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { labels: { color: '#a5b4fc', font: { family: 'Inter' } } } },
+                            scales: {
+                                x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } },
+                                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } }
+                            }
+                        }
+                    });
+
+                    // Comparison Chart
+                    document.getElementById('comparison-section').style.display = 'block';
+                    var recent = chronological.slice(-8);
+                    var compCtx = document.getElementById('comparisonChart').getContext('2d');
+                    new Chart(compCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: recent.map(function (r, i) { return '#' + (i + 1) + ' ' + r.method; }),
+                            datasets: [
+                                {
+                                    label: 'Effort (PM)',
+                                    data: recent.map(function (r) { return r.effort; }),
+                                    backgroundColor: 'rgba(129,140,248,0.7)',
+                                    borderColor: '#818cf8',
+                                    borderWidth: 1,
+                                    borderRadius: 6,
+                                },
+                                {
+                                    label: 'Time (Mo)',
+                                    data: recent.map(function (r) { return r.time; }),
+                                    backgroundColor: 'rgba(52,211,153,0.7)',
+                                    borderColor: '#34d399',
+                                    borderWidth: 1,
+                                    borderRadius: 6,
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { labels: { color: '#a5b4fc', font: { family: 'Inter' } } } },
+                            scales: {
+                                x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } },
+                                y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } }
+                            }
+                        }
+                    });
+                }
+
+            } catch (err) {
+                console.error('Failed to load history:', err);
+            }
+        }
+
+        loadHistory();
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(function (err) {
+                console.log('SW registration failed:', err);
+            });
+        }
+    </script>
+</body>
+
+</html>
