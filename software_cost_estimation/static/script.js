@@ -70,6 +70,7 @@ async function calculate() {
     if (!fp || parseFloat(fp) <= 0) return showError('Please enter valid Function Points.');
     payload.fp = parseFloat(fp);
     payload.language = document.getElementById('language').value;
+    payload.project_type = document.getElementById('fpa_project_type').value;
     endpoint = '/estimate/fpa';
   }
 
@@ -112,7 +113,9 @@ function displayResults(data) {
 
   // Method label
   document.getElementById('result-method').textContent =
-    currentMethod === 'cocomo' ? 'COCOMO Basic Model' : 'Function Point Analysis';
+    currentMethod === 'cocomo'
+      ? 'COCOMO I (Basic) — effort & schedule from KLOC'
+      : 'FPA → LOC → COCOMO I (Basic) — hybrid estimate';
 
   // Stat values
   document.getElementById('res-effort').textContent = data.effort.toFixed(2);

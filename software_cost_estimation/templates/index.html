@@ -35,6 +35,23 @@
     <main class="dashboard">
         <div class="dashboard-grid">
 
+            <section class="welcome-banner" aria-labelledby="welcome-heading">
+                <h2 id="welcome-heading">How Planix works</h2>
+                <p>
+                    <em>COCOMO</em> estimates effort and schedule from project size in <strong>KLOC</strong> (thousands of lines of code)
+                    and your project type: organic, semi-detached, or embedded — using the classic <strong>Basic COCOMO I</strong> formulas.
+                </p>
+                <p>
+                    <em>FPA</em> (function points) is converted to an approximate codebase size using typical LOC-per-FP for your
+                    <strong>language</strong>, then the same COCOMO model runs on that size. Pick <strong>project type</strong> here too so
+                    effort and time match your environment.
+                </p>
+                <p>
+                    Enter your team’s <strong>cost per person-month (₹)</strong> to translate effort into total cost. Use <strong>History</strong>
+                    to review past estimates. Results are planning aids, not contracts — adjust assumptions for your organization.
+                </p>
+            </section>
+
             <!-- Left: Estimation Form -->
             <section class="card form-card">
                 <h2 class="card-title">New Estimation</h2>
@@ -78,6 +95,14 @@
                             <option value="python">Python</option>
                             <option value="java">Java</option>
                             <option value="c">C</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="fpa_project_type">Project type <span class="label-hint">(for COCOMO after FP→LOC)</span></label>
+                        <select id="fpa_project_type">
+                            <option value="organic">Organic</option>
+                            <option value="semi">Semi-Detached</option>
+                            <option value="embedded">Embedded</option>
                         </select>
                     </div>
                 </div>

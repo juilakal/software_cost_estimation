@@ -55,12 +55,13 @@ body {
 .auth-container {
   display: flex;
   width: 100%;
-  max-width: 900px;
-  min-height: 560px;
+  max-width: 960px;
+  min-height: auto;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
   animation: fadeInUp 0.6s ease-out;
+  align-items: stretch;
 }
 
 @keyframes fadeInUp {
@@ -70,7 +71,8 @@ body {
 
 /* ── Hero Panel ─────────────────────────────────────────────── */
 .auth-hero {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   background: var(--gradient-1);
   padding: 48px 40px;
   display: flex;
@@ -132,15 +134,24 @@ body {
 
 /* ── Form Panel ─────────────────────────────────────────────── */
 .auth-form-panel {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   background: var(--bg-secondary);
-  padding: 48px 40px;
+  padding: 40px 36px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 
-.auth-form-wrapper { width: 100%; max-width: 340px; }
+.auth-form-inner {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.auth-form-wrapper { width: 100%; max-width: 400px; }
 .auth-form-wrapper h2 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -193,6 +204,53 @@ body {
 }
 .auth-switch a:hover { color: #a5b4fc; }
 
+/* ── New-user guide (login) ─────────────────────────────────── */
+.auth-guide {
+  width: 100%;
+  padding: 18px 18px 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: left;
+}
+.auth-guide-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.auth-guide-lead {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+.auth-guide-steps {
+  margin: 0 0 12px 1.1rem;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+.auth-guide-steps li {
+  margin-bottom: 8px;
+}
+.auth-guide-steps li:last-child {
+  margin-bottom: 0;
+}
+.auth-guide-steps strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.auth-guide-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
 
 /* ═══════════════════════════════════════════════════════════════
    FORM ELEMENTS (shared auth + dashboard)
@@ -228,7 +286,8 @@ body {
   transition: color var(--transition);
 }
 .input-wrapper input {
-  padding-left: 40px;
+  padding-left: 42px;
+  padding-right: 14px;
 }
 
 input[type="text"],
@@ -374,6 +433,36 @@ select option { background: var(--bg-secondary); color: var(--text-primary); }
   max-width: 1200px;
   margin: 0 auto;
   padding: 32px 24px;
+}
+
+/* ── Welcome / how-it-works (dashboard) ─────────────────────── */
+.welcome-banner {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.12) 0%, rgba(192, 132, 252, 0.08) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 8px;
+}
+.welcome-banner h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.welcome-banner p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  max-width: 900px;
+}
+.welcome-banner p + p {
+  margin-top: 10px;
+}
+.welcome-banner em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .dashboard-grid {
@@ -612,9 +701,24 @@ select option { background: var(--bg-secondary); color: var(--text-primary); }
    ═══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 900px) {
-  .auth-container { flex-direction: column; }
-  .auth-hero { padding: 32px 24px; min-height: auto; }
-  .auth-form-panel { padding: 32px 24px; }
+  .auth-container {
+    flex-direction: column;
+    max-width: 440px;
+    min-height: unset;
+  }
+  .auth-hero {
+    padding: 28px 22px;
+    order: 2;
+    flex: none;
+  }
+  .auth-form-panel {
+    padding: 28px 22px 32px;
+    order: 1;
+    flex: none;
+  }
+  .auth-form-inner {
+    max-width: none;
+  }
 
   .dashboard-grid { grid-template-columns: 1fr; }
 

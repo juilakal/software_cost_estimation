@@ -1,9 +1,25 @@
+"""
+Basic (intermediate) COCOMO I (Boehm, 1981).
+
+Effort (person-months) = a × (KLOC ** b)
+Development time (months) = c × (Effort ** d)
+Cost = Effort × cost_per_pm
+
+Coefficients match the standard organic / semi-detached / embedded modes.
+"""
+
+
 def cocomo_basic(kloc, project_type, cost_per_pm):
     params = {
         "organic": (2.4, 1.05, 2.5, 0.38),
         "semi": (3.0, 1.12, 2.5, 0.35),
-        "embedded": (3.6, 1.20, 2.5, 0.32)
+        "embedded": (3.6, 1.20, 2.5, 0.32),
     }
+
+    if project_type not in params:
+        raise ValueError(
+            f"project_type must be one of {list(params.keys())}, got {project_type!r}"
+        )
 
     a, b, c, d = params[project_type]
 

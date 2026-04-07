@@ -2,7 +2,8 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Literal
 from backend.estimator import estimate_using_cocomo, estimate_using_fpa
 from backend.auth import (
     hash_password, verify_password, create_access_token, get_current_user
@@ -44,14 +45,16 @@ class LoginRequest(BaseModel):
     password: str
 
 class CocomoRequest(BaseModel):
-    kloc: float
-    project_type: str       # "organic" | "semi" | "embedded"
-    cost_per_pm: float
+    kloc: float = Field(gt=0, description="Size in thousands of lines of code")
+    project_type: Literal["organic", "semi", "embedded"]
+    cost_per_pm: float = Field(gt=0, description="Cost per person-month (same currency as UI)")
+
 
 class FpaRequest(BaseModel):
-    fp: float
-    language: str           # "python" | "java" | "c"
-    cost_per_pm: float
+    fp: float = Field(gt=0, description="Unadjusted function points (aggregate)")
+    language: Literal["python", "java", "c"]
+    cost_per_pm: float = Field(gt=0)
+    project_type: Literal["organic", "semi", "embedded"] = "organic"
 
 
 # ── Auth Endpoints ──────────────────────────────────────────────
@@ -110,9 +113,12 @@ def history_page():
 # ── COCOMO Endpoint ─────────────────────────────────────────────
 @app.post("/estimate/cocomo")
 def estimate_cocomo(data: CocomoRequest, user: dict = Depends(get_current_user)):
-    effort, time, cost = estimate_using_cocomo(
-        data.kloc, data.project_type, data.cost_per_pm
-    )
+    try:
+        effort, time, cost = estimate_using_cocomo(
+            data.kloc, data.project_type, data.cost_per_pm
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     result = {
         "effort": round(effort, 2),
         "time": round(time, 2),
@@ -134,9 +140,15 @@ def estimate_cocomo(data: CocomoRequest, user: dict = Depends(get_current_user))
 # ── FPA Endpoint ────────────────────────────────────────────────
 @app.post("/estimate/fpa")
 def estimate_fpa(data: FpaRequest, user: dict = Depends(get_current_user)):
-    effort, time, cost = estimate_using_fpa(
-        data.fp, data.language, data.cost_per_pm
-    )
+    try:
+        effort, time, cost = estimate_using_fpa(
+            data.fp,
+            data.language,
+            data.cost_per_pm,
+            project_type=data.project_type,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     result = {
         "effort": round(effort, 2),
         "time": round(time, 2),
@@ -145,8 +157,12 @@ def estimate_fpa(data: FpaRequest, user: dict = Depends(get_current_user)):
     save_estimation(
         user_id=user["user_id"],
         method="FPA",
-        inputs={"fp": data.fp, "language": data.language,
-                "cost_per_pm": data.cost_per_pm},
+        inputs={
+            "fp": data.fp,
+            "language": data.language,
+            "project_type": data.project_type,
+            "cost_per_pm": data.cost_per_pm,
+        },
         effort=result["effort"],
         time_val=result["time"],
         cost=result["cost"],
