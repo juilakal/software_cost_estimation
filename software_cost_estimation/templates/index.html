@@ -33,22 +33,43 @@
 
     <!-- Main Content -->
     <main class="dashboard">
+
+        <!-- First-time user onboarding banner -->
+        <section class="onboarding-banner" id="onboarding-banner" style="display:none;">
+            <div class="onboarding-header">
+                <h2>🚀 Welcome to Planix — Here's how to get started</h2>
+                <button class="onboarding-dismiss" id="onboarding-dismiss" aria-label="Dismiss guide">Got it!</button>
+            </div>
+            <ol class="onboarding-steps">
+                <li><strong>Choose your estimation model</strong> — COCOMO or FPA</li>
+                <li><strong>Enter your project details</strong> — size, language, cost per person-month</li>
+                <li><strong>View your results</strong> — effort, timeline, and total cost</li>
+                <li><strong>Check the History page</strong> to track past estimations</li>
+            </ol>
+        </section>
+
         <div class="dashboard-grid">
 
             <section class="welcome-banner" aria-labelledby="welcome-heading">
                 <h2 id="welcome-heading">How Planix works</h2>
                 <p>
-                    <em>COCOMO</em> estimates effort and schedule from project size in <strong>KLOC</strong> (thousands of lines of code)
-                    and your project type: organic, semi-detached, or embedded — using the classic <strong>Basic COCOMO I</strong> formulas.
+                    <em>COCOMO</em> estimates effort and schedule from project size in <strong>KLOC</strong> (thousands
+                    of lines of code)
+                    and your project type: organic, semi-detached, or embedded — using the classic <strong>Basic COCOMO
+                        I</strong> formulas.
                 </p>
                 <p>
-                    <em>FPA</em> (function points) is converted to an approximate codebase size using typical LOC-per-FP for your
-                    <strong>language</strong>, then the same COCOMO model runs on that size. Pick <strong>project type</strong> here too so
+                    <em>FPA</em> (function points) is converted to an approximate codebase size using typical LOC-per-FP
+                    for your
+                    <strong>language</strong>, then the same COCOMO model runs on that size. Pick <strong>project
+                        type</strong> here too so
                     effort and time match your environment.
                 </p>
                 <p>
-                    Enter your team’s <strong>cost per person-month (₹)</strong> to translate effort into total cost. Use <strong>History</strong>
-                    to review past estimates. Results are planning aids, not contracts — adjust assumptions for your organization.
+                    Enter your team’s <strong>cost per person-month (₹)</strong> to translate effort into total cost.
+                    Use <strong>History</strong>
+                    to review past estimates. Results are planning aids, not contracts — adjust assumptions for your
+                    organization.
                 </p>
             </section>
 
@@ -98,7 +119,8 @@
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="fpa_project_type">Project type <span class="label-hint">(for COCOMO after FP→LOC)</span></label>
+                        <label for="fpa_project_type">Project type <span class="label-hint">(for COCOMO after
+                                FP→LOC)</span></label>
                         <select id="fpa_project_type">
                             <option value="organic">Organic</option>
                             <option value="semi">Semi-Detached</option>

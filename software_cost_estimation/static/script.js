@@ -11,6 +11,26 @@ const usernameEl = document.getElementById('nav-username');
 if (usernameEl) usernameEl.textContent = localStorage.getItem('username') || 'User';
 
 
+// ── First-time onboarding banner ──────────────────────────────
+(function initOnboarding() {
+  const banner = document.getElementById('onboarding-banner');
+  const dismissBtn = document.getElementById('onboarding-dismiss');
+  if (!banner || !dismissBtn) return;
+
+  if (!localStorage.getItem('planix_onboarded')) {
+    banner.style.display = 'block';
+  }
+
+  dismissBtn.addEventListener('click', function () {
+    banner.classList.add('hiding');
+    banner.addEventListener('animationend', function () {
+      banner.style.display = 'none';
+    }, { once: true });
+    localStorage.setItem('planix_onboarded', 'true');
+  });
+})();
+
+
 // ── Logout ─────────────────────────────────────────────────────
 function logout() {
   localStorage.removeItem('token');
